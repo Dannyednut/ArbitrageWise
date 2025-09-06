@@ -1,7 +1,0 @@
-2025-09-06 12:41:12,052 - INFO - Updating account balances...
-2025-09-06 12:41:12,329 - ERROR - Could not fetch balance for bybit: bybit requires "apiKey" credential
-2025-09-06 12:41:12,481 - ERROR - Could not fetch balance for kucoin: kucoin requires "apiKey" credential
-2025-09-06 12:41:12,704 - ERROR - Could not fetch balance for bingx: bingx requires "apiKey" credential
-2025-09-06 12:41:12,751 - ERROR - Could not fetch balance for gate: gate requires "apiKey" credential
-2025-09-06 12:41:12,958 - ERROR - Could not fetch balance for binance: binance requires "apiKey" credential
-2025-09-06 12:41:12,958 - INFO - Account balances updated successfully.

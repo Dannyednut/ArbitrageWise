@@ -251,7 +251,7 @@ class Engine:
                         error_text = await response.text()
                         logger.error(f"Failed to save {entity_name}: {response.status} - {error_text}")
             if self.notifier:
-                await self.notifier.send_opportunity_notification(op)
+                await self.notifier.send_opportunity_alert(op)
         except Exception as e:
             logger.error(f"Exception saving {entity_name}: {e}")
     

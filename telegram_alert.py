@@ -9,7 +9,7 @@ from engine import logger
 
 
 class TelegramNotifier:
-    def __init__(self, chat_id, execution_endpoint: str = "http://localhost:5001/execute"):
+    def __init__(self, chat_id, execution_endpoint: str = Config.EXECUTE_URL):
         self.bot = Bot(token=Config.TELEGRAM_BOT_TOKEN)
         self.dp = Dispatcher()
         self.chat_id = chat_id
@@ -18,12 +18,12 @@ class TelegramNotifier:
         # Register handlers
         self.dp.callback_query.register(self.handle_execute_button, lambda c: c.data.startswith("EXECUTE_"))
 
-    async def send_opportunity_alert(self, opportunity: Opportunity):
+    async def send_opportunity_alert(self, opportunity: Opportunity, Id: str = None):
         """
         Send an opportunity alert message with inline buttons to execute trade.
         """
         message_text = self._format_opportunity_message(opportunity)
-        keyboard = self._build_action_buttons(opportunity)
+        keyboard = self._build_action_buttons(opportunity, Id)
 
         await self.bot.send_message(chat_id=self.chat_id, text=message_text, parse_mode="HTML", reply_markup=keyboard)
 
@@ -51,7 +51,7 @@ class TelegramNotifier:
             )
         return text
 
-    def _build_action_buttons(self, opp: Opportunity) -> InlineKeyboardMarkup:
+    def _build_action_buttons(self, opp: Opportunity, Id: str = None) -> InlineKeyboardMarkup:
         """
         Builds inline keyboard buttons for executing trades.
         For cross-exchange: buttons for instant or transfer strategies.
@@ -64,18 +64,18 @@ class TelegramNotifier:
             buttons.append([
                 InlineKeyboardButton(
                     text="Execute Instant",
-                    callback_data=f"EXECUTE_{opp_type}_{opp.id}_instant"
+                    callback_data=f"EXECUTE_{opp_type}_{Id}_instant"
                 ),
                 InlineKeyboardButton(
                     text="Execute Transfer",
-                    callback_data=f"EXECUTE_{opp_type}_{opp.id}_transfer"
+                    callback_data=f"EXECUTE_{opp_type}_{Id}_transfer"
                 )
             ])
         else:  # Triangular only one execute option
             buttons.append([
                 InlineKeyboardButton(
                     text="Execute",
-                    callback_data=f"EXECUTE_{opp_type}_{opp.id}_default"
+                    callback_data=f"EXECUTE_{opp_type}_{Id}_default"
                 )
             ])
 

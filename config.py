@@ -28,6 +28,7 @@ class Config:
     # Flask Configuration
     FLASK_HOST = os.getenv("FLASK_HOST", "0.0.0.0")
     FLASK_PORT = int(os.getenv("FLASK_PORT", "5001"))
+    EXECUTE_URL = "https://arbitragewise-production.up.railway.app/execute"
     
     # Logging Configuration
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

@@ -247,11 +247,12 @@ class Engine:
                         result = await response.json()
                         logger.info(f"Saved {entity_name} opportunity: {result.get('id')}")
                         # Send Telegram notification
+                        if self.notifier:
+                            await self.notifier.send_opportunity_alert(op, result.get('id'))
                     else:
                         error_text = await response.text()
                         logger.error(f"Failed to save {entity_name}: {response.status} - {error_text}")
-            if self.notifier:
-                await self.notifier.send_opportunity_alert(op)
+                        
         except Exception as e:
             logger.error(f"Exception saving {entity_name}: {e}")
     
@@ -284,13 +285,6 @@ class Engine:
         for sig in expired_keys:
             self.seen_opportunities.discard(sig)
             self.seen_timestamps.pop(sig, None)
-
-    async def reconnect(self, exchange, sleep=5):
-        try:
-            await exchange.close()
-        except Exception:
-            pass
-        await asyncio.sleep(sleep)  # backoff
 
     async def stop(self):
         """Stop the arbitrage engine and cleanup connections"""

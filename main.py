@@ -181,6 +181,10 @@ if __name__ == "__main__":
         logger.info("Shutdown signal received. Exiting.")
     finally:
         # Perform cleanup
-        if scanner_loop and scanner_loop.is_running():
+        if scanner_loop.is_running():
+            logger.info("Closing exchanges and cleaning up...")
+            # Schedule the cleanup coroutine to run on the event loop
             scanner_loop.run_until_complete(arbitrage_app.engine.stop())
+        scanner_loop.close()
+        logger.info("Application shut down gracefully.")
             

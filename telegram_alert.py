@@ -57,30 +57,29 @@ class TelegramNotifier:
         For cross-exchange: buttons for instant or transfer strategies.
         For triangular: single execute button.
         """
-        keyboard = InlineKeyboardMarkup(row_width=2)
         opp_type = "cross" if opp.trading_pair else "triangular"
+        buttons = []
 
         if opp_type == "cross":
-            keyboard.insert(
+            buttons.append([
                 InlineKeyboardButton(
                     text="Execute Instant",
                     callback_data=f"EXECUTE_{opp_type}_{opp.id}_instant"
-                )
-            )
-            keyboard.insert(
+                ),
                 InlineKeyboardButton(
                     text="Execute Transfer",
                     callback_data=f"EXECUTE_{opp_type}_{opp.id}_transfer"
                 )
-            )
+            ])
         else:  # Triangular only one execute option
-            keyboard.add(
+            buttons.append([
                 InlineKeyboardButton(
                     text="Execute",
                     callback_data=f"EXECUTE_{opp_type}_{opp.id}_default"
                 )
-            )
-        return keyboard
+            ])
+
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
 
     async def handle_execute_button(self, callback_query: CallbackQuery):
         await callback_query.answer()

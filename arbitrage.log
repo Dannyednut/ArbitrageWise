@@ -205,3 +205,5 @@
  * Running on http://10.2.0.2:5001
 2025-09-08 14:45:01,811 - INFO - [33mPress CTRL+C to quit[0m
 2025-09-08 14:45:12,748 - INFO - Successfully initialized bybit
+2025-09-08 14:45:21,144 - INFO - Successfully initialized kucoin
+2025-09-08 14:45:25,170 - INFO - Successfully initialized bingx

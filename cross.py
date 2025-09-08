@@ -5,16 +5,15 @@ from models import TradeResult, Opportunity
 from typing import List, Dict
 from decimal import Decimal
 from datetime import datetime
+from config import Config
 
 
 class CrossExchange(Engine):
 
-    def __init__(self, symbols: list, engine: Engine):
+    def __init__(self, engine: Engine, config: Config):
         self.engine = engine
         self.price_cache = {}
-        self.symbols = symbols or [
-            'BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'XRP/USDT', 'ADA/USDT'
-        ]
+        self.config = config
         self.reconnect_delay = 30  # Wait 30 seconds before retrying a failed connection
 
     async def start_price_streams(self):
@@ -23,7 +22,7 @@ class CrossExchange(Engine):
         tasks = []
 
         for exchange_name, exchange in self.engine.exchanges.items():
-            for symbol in self.symbols:
+            for symbol in self.config.symbols:
                 # Create a dedicated, perpetual task for each stream
                 task = asyncio.create_task(
                     self.stream_manager(exchange_name, exchange, symbol), )
@@ -77,7 +76,7 @@ class CrossExchange(Engine):
         """Continuously analyzes the in-memory price cache for arbitrage opportunities."""
         while self.engine.running:
             try:
-                for symbol in self.symbols:
+                for symbol in self.config.symbols:
                     opportunities = self.analyze_symbol_opportunities(symbol)
                     for opp in opportunities:
                         # The base Engine class handles the logic for finding opportunities

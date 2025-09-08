@@ -25,7 +25,7 @@ class ArbitrageApp:
         }
         self.notifier = TelegramNotifier(Config.TELEGRAM_CHAT_ID) if Config.TELEGRAM_ALERTS_ENABLED else None
         self.engine = Engine(config.BASE44_API_URL, config.APP_TOKEN, self.notifier)
-        self.cross_engine = CrossExchange(config.SYMBOLS, self.engine)
+        self.cross_engine = CrossExchange(self.engine, self.config)
         self.triangular_engine = Triangular(self.engine)
         self.trade_lock = asyncio.Lock()
 

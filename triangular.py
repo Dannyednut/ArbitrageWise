@@ -50,8 +50,7 @@ class Triangular:
         )
 
         # IMPROVED: Limit symbols to prevent API limits
-        symbols_to_watch = unique_symbols[:
-                                          20]  # Watch top 20 most liquid pairs
+        symbols_to_watch = unique_symbols[:20]  # Watch top 20 most liquid pairs
         tasks = []
 
         try:
@@ -73,18 +72,19 @@ class Triangular:
             await asyncio.sleep(self.reconnect_delay)
 
     async def _watch_symbol(self, exchange_name, exchange, symbol):
+        reconnect_attempts = 0
+        max_reconnect_delay = 300  # 5 minutes
+
         while self.engine.running:
             try:
-                ob = await asyncio.wait_for(exchange.watch_order_book(symbol),
-                                            timeout=None)
+                ob = await asyncio.wait_for(exchange.watch_order_book(symbol), timeout=None)
                 self.order_book_cache[exchange_name][symbol] = ob
+                reconnect_attempts = 0
 
-                affected_paths = self.paths_by_pair[exchange_name].get(
-                    symbol, [])
+                affected_paths = self.paths_by_pair[exchange_name].get(symbol, [])
                 for path in affected_paths:
                     asyncio.create_task(
-                        self._calculate_path_profit(exchange_name, exchange,
-                                                    path))
+                        self._calculate_path_profit(exchange_name, exchange, path))
 
             except asyncio.TimeoutError:
                 logger.warning(f"[{exchange_name}] Timeout for {symbol}")
@@ -92,18 +92,25 @@ class Triangular:
                 logger.warning(
                     f"[{exchange_name}] Error in symbol watcher for {symbol}: {e}"
                 )
-                await asyncio.sleep(10)  # backoff before reconnect
+                # Ensure the connection is closed before a new attempt
+                if hasattr(exchange, 'close') and exchange.client:
+                    # The .close() method should ideally be idempotent, but a check is safer.
+                    await exchange.close()
+
+                # Exponential backoff for reconnection
+                delay = min(self.reconnect_delay * (2 ** reconnect_attempts), max_reconnect_delay)
+                logger.info(f"[{exchange_name}] Reconnecting in {delay} seconds...")
+                await asyncio.sleep(delay)
+                reconnect_attempts += 1
 
     # IMPROVED: Better path calculation with validation
-    async def _calculate_path_profit(self, exchange_name: str, exchange,
-                                     path: tuple):
+    async def _calculate_path_profit(self, exchange_name: str, exchange, path: tuple):
         """Calculates the profit for a single triangular path with improved validation."""
         asset1, asset2, asset3, pair1, pair2, pair3 = path
 
         try:
             cache = self.order_book_cache.get(exchange_name, {})
-            ob1, ob2, ob3 = cache.get(pair1), cache.get(pair2), cache.get(
-                pair3)
+            ob1, ob2, ob3 = cache.get(pair1), cache.get(pair2), cache.get(pair3)
 
             if not all([ob1, ob2, ob3]):
                 return
@@ -118,54 +125,60 @@ class Triangular:
 
             # IMPROVED: More accurate rate calculation
             # Trade 1: Buy asset2 using asset1
-            rate1 = self._get_conversion_rate(pair1,
-                                              asset2,
-                                              asset1,
-                                              ob1,
-                                              is_buy=True)
+            rate1 = self._get_conversion_rate(
+                pair1,
+                asset2,
+                asset1,
+                ob1,
+                is_buy=True
+            )
             if rate1 is None or rate1 == 0:
                 return
             amount_asset2 = initial_usdt * 0.999 / rate1
 
             # Trade 2: Buy asset3 using asset2
-            rate2 = self._get_conversion_rate(pair2,
-                                              asset3,
-                                              asset2,
-                                              ob2,
-                                              is_buy=True)
+            rate2 = self._get_conversion_rate(
+                pair2,
+                asset3,
+                asset2,
+                ob2,
+                is_buy=True
+            )
             if rate2 is None or rate2 == 0:
                 return
             amount_asset3 = amount_asset2 * 0.999 / rate2
 
             # Trade 3: Sell asset3 for asset1
-            rate3 = self._get_conversion_rate(pair3,
-                                              asset3,
-                                              asset1,
-                                              ob3,
-                                              is_buy=False)
+            rate3 = self._get_conversion_rate(
+                pair3,
+                asset3,
+                asset1,
+                ob3,
+                is_buy=False
+            )
             if rate3 is None or rate3 == 0:
                 return
             final_amount = amount_asset3 * rate3
 
             # IMPROVED: Account for trading fees (0.1% per trade = 0.3% total)
             final_amount_after_fees = final_amount * 0.999
-            profit_percentage = (
-                (final_amount_after_fees - initial_usdt) / initial_usdt) * 100
+            profit_percentage = ((final_amount_after_fees - initial_usdt) / initial_usdt) * 100
 
             if profit_percentage > self.engine.min_profit_threshold:
-                opp = Opportunity(exchange=exchange_name,
-                                  trading_path=[pair1, pair2, pair3],
-                                  assets=[asset1, asset2, asset3],
-                                  profit_percentage=profit_percentage,
-                                  initial_amount=initial_usdt,
-                                  final_amount=final_amount_after_fees,
-                                  detected_at=datetime.now().isoformat())
+                opp = Opportunity(
+                    exchange=exchange_name,
+                    trading_path=[pair1, pair2, pair3],
+                    assets=[asset1, asset2, asset3],
+                    profit_percentage=profit_percentage,
+                    initial_amount=initial_usdt,
+                    final_amount=final_amount_after_fees,
+                    detected_at=datetime.now().isoformat()
+                )
 
                 logger.info(
                     f"Triangular Opportunity: {exchange_name} | {asset1}=>{asset2}=>{asset3} | {profit_percentage:.3f}%"
                 )
-                await self.engine.save_opportunity(opp,
-                                                   'TriangularOpportunity')
+                await self.engine.save_opportunity(opp,'TriangularOpportunity')
 
         except (KeyError, IndexError, ZeroDivisionError, TypeError) as e:
             logger.debug(f"Data error for path {path}: {e}")

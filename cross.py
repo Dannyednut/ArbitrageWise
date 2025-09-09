@@ -50,27 +50,46 @@ class CrossExchange(Engine):
     async def stream_orderbook(self, exchange_name: str, exchange,
                                symbol: str):
         """The core loop that watches for order book updates from a single stream."""
+        reconnect_attempts = 0
+        max_reconnect_delay = 300  
+
         while self.engine.running:
-            # This is the main blocking call that waits for a new update
-            orderbook = await exchange.watch_order_book(symbol)
+            try:
+                # This is the main blocking call that waits for a new update
+                orderbook = await exchange.watch_order_book(symbol)
 
-            if exchange_name not in self.price_cache:
-                self.price_cache[exchange_name] = {}
+                if exchange_name not in self.price_cache:
+                    self.price_cache[exchange_name] = {}
 
-            # Ensure the order book data is valid before processing
-            if orderbook and orderbook.get('bids') and orderbook.get('asks'):
-                self.price_cache[exchange_name][symbol] = {
-                    'bid': orderbook['bids'][0][0],
-                    'ask': orderbook['asks'][0][0],
-                    'timestamp': orderbook['timestamp']
-                }
-                logger.debug(
-                    f"Price Update: {exchange_name} {symbol} | Bid: {self.price_cache[exchange_name][symbol]['bid']}, Ask: {self.price_cache[exchange_name][symbol]['ask']}"
-                )
-            else:
+                # Ensure the order book data is valid before processing
+                if orderbook and orderbook.get('bids') and orderbook.get('asks'):
+                    self.price_cache[exchange_name][symbol] = {
+                        'bid': orderbook['bids'][0][0],
+                        'ask': orderbook['asks'][0][0],
+                        'timestamp': orderbook['timestamp']
+                    }
+                    logger.info(
+                        f"Price Update: {exchange_name} {symbol} | Bid: {self.price_cache[exchange_name][symbol]['bid']}, Ask: {self.price_cache[exchange_name][symbol]['ask']}"
+                    )
+                    reconnect_attempts = 0
+                else:
+                    logger.warning(
+                        f"[{exchange_name}] Received invalid order book for {symbol}"
+                    )
+            except Exception as e:
                 logger.warning(
-                    f"[{exchange_name}] Received invalid order book for {symbol}"
+                    f"[{exchange_name}] Error in symbol watcher for {symbol}: {e}"
                 )
+                # Ensure the connection is closed before a new attempt
+                if hasattr(exchange, 'close') and exchange.client:
+                    # The .close() method should ideally be idempotent, but a check is safer.
+                    await exchange.close()
+
+                # Exponential backoff for reconnection
+                delay = min(self.reconnect_delay * (2 ** reconnect_attempts), max_reconnect_delay)
+                logger.info(f"[{exchange_name}] Reconnecting in {delay} seconds...")
+                await asyncio.sleep(delay)
+                reconnect_attempts += 1
 
     async def continuous_opportunity_detection(self):
         """Continuously analyzes the in-memory price cache for arbitrage opportunities."""

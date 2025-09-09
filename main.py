@@ -37,6 +37,7 @@ class ArbitrageApp:
         scanner_tasks = [
             asyncio.create_task(self.cross_engine.start()),
             asyncio.create_task(self.triangular_engine.start()),
+            asyncio.create_task(self.engine.watch_base44_config()),
             asyncio.create_task(self.engine.update_account_balances_periodically())
         ]
 

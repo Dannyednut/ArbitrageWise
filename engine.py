@@ -36,22 +36,49 @@ class Engine:
         }
         self.exchanges: Dict[str, ccxt.Exchange] = {}
         self.min_profit_threshold = 0.3
+        self.reconnect_delay = 30
         self.seen_opportunities = set()  # Cache of hashes
         self.cache_ttl = 60  # seconds
+        self.loaded_config = None
         self.seen_timestamps = {}  # Optional: for TTL cleanup
         self.running = False
-        
-    async def initialize_exchanges(self):
-        """Load exchange configurations from base44 database and initialize exchanges"""
+    
+    async def fetch_exchanges(self):
+        """Load exchange configurations from base44 database"""
         try:
             async with aiohttp.ClientSession() as session:
                 # FIXED: Consistent headers
                 async with session.get(f'{self.base44_api_url}/entities/Exchange', headers=self.headers) as response:
                     if response.status != 200:
                         logger.error(f"Failed to fetch exchanges: {response.status}")
-                        return
+                        return None
                     exchange_configs = await response.json()
-            
+                    return exchange_configs
+        except Exception as e:
+            logger.error(f"Failed to fetch exchange configurations from base44: {e}")
+
+    async def watch_base44_config(self):
+        while True:
+            if not self.loaded_config:
+                self.loaded_config = await self.fetch_exchanges()
+
+            load_config = await self.fetch_exchanges()
+            if not load_config:
+                continue
+
+            if not load_config == self.loaded_config:
+                logger.info("Detect configuration update. Re-initializing exchanges...")
+                await self.stop()
+                await asyncio.sleep(2)
+                await self.initialize_exchanges(load_config)
+            await asyncio.sleep(1800)
+
+    async def initialize_exchanges(self, config=None):
+        """Initialize exchanges"""
+        try:
+            exchange_configs = await self.fetch_exchanges() if not config else config
+            if not exchange_configs:
+                return
             for config in exchange_configs:
                 if not config.get('is_active', False):
                     continue
@@ -81,9 +108,11 @@ class Engine:
                     
                 except asyncio.TimeoutError:
                     logger.error(f"Timeout initializing {exchange_name}")
+                    await exchange.close()
                 except Exception as e:
                     logger.error(f"Failed to initialize {exchange_name}: {e}")
-                    
+                    await exchange.close()
+            self.loaded_config = exchange_configs       
         except Exception as e:
             logger.error(f"Failed to load exchange configurations: {e}")
     
@@ -285,6 +314,10 @@ class Engine:
         for sig in expired_keys:
             self.seen_opportunities.discard(sig)
             self.seen_timestamps.pop(sig, None)
+
+    async def reconnect(self, exchange, sleep = None):
+        await asyncio.sleep(sleep or self.reconnect_delay)
+        await exchange.close()
 
     async def stop(self):
         """Stop the arbitrage engine and cleanup connections"""

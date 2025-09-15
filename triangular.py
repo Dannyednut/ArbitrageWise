@@ -50,7 +50,7 @@ class Triangular:
         )
 
         # IMPROVED: Limit symbols to prevent API limits
-        symbols_to_watch = unique_symbols[:20]  # Watch top 20 most liquid pairs
+        symbols_to_watch = unique_symbols[:50]  # Watch top 20 most liquid pairs
         tasks = []
 
         try:
@@ -254,7 +254,7 @@ class Triangular:
             )
 
             # Step 4 (Optional): Filter paths involving only high-liquidity or priority assets
-            priority_assets = {'USDT', 'BTC', 'ETH', 'BNB', 'USDC'}
+            priority_assets = {'USDT', 'BTC', 'ETH','USDC'}
             filtered_paths = [
                 path for path in valid_paths
                 if any(asset in priority_assets for asset in path[:3])

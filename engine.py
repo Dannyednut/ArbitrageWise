@@ -98,7 +98,7 @@ class Engine:
                         'secret': config.get('api_secret', ''),
                         'options': {'defaultType': 'spot'},
                         'enableRateLimit': True,
-                        'sandbox': False,  # Set to True for testing
+                        'sandbox': True,  # Set to True for testing
                     })
                     
                     # Test connection with timeout

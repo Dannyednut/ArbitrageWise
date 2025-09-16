@@ -43,40 +43,40 @@ async def execute_trade_endpoint():
         logger.error(f"API endpoint error: {e}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
 
-@app.route('/telegram-webhook', methods=['POST'])
-async def telegram_webhook():
-    data = await request.get_json()
+# @app.route('/telegram-webhook', methods=['POST'])
+# async def telegram_webhook():
+#     data = await request.get_json()
 
-    if 'callback_query' in data:
-        callback = data['callback_query']
-        chat_id = callback['message']['chat']['id']
-        data_str = callback['data']  # e.g., "exec|instant|abc123"
+#     if 'callback_query' in data:
+#         callback = data['callback_query']
+#         chat_id = callback['message']['chat']['id']
+#         data_str = callback['data']  # e.g., "exec|instant|abc123"
 
-        parts = data_str.split('|')
-        if len(parts) != 3:
-            return jsonify(ok=True)
+#         parts = data_str.split('|')
+#         if len(parts) != 3:
+#             return jsonify(ok=True)
 
-        action, subtype, opportunity_id = parts
+#         action, subtype, opportunity_id = parts
 
-        if action == "exec":
-            exec_payload = {
-                "type": "cross" if subtype in ("instant", "transfer") else "triangular",
-                "strategy": subtype,
-                "opportunity_id": opportunity_id
-            }
+#         if action == "exec":
+#             exec_payload = {
+#                 "type": "cross" if subtype in ("instant", "transfer") else "triangular",
+#                 "strategy": subtype,
+#                 "opportunity_id": opportunity_id
+#             }
 
-            try:
-                result = await arbitrage_app.execute_trade_logic(exec_payload)
-                if result.status != "success":
-                    logger.error(f"Trade execution from Telegram button failed: {result.message}")
-                    result = TradeResult("error", f"Trade execution failed: {result.message}")
-            except Exception as e:
-                logger.error(f"Error executing trade from Telegram button: {e}")
-                result = TradeResult("error", "Failed to execute trade from Telegram button.")
+#             try:
+#                 result = await arbitrage_app.execute_trade_logic(exec_payload)
+#                 if result.status != "success":
+#                     logger.error(f"Trade execution from Telegram button failed: {result.message}")
+#                     result = TradeResult("error", f"Trade execution failed: {result.message}")
+#             except Exception as e:
+#                 logger.error(f"Error executing trade from Telegram button: {e}")
+#                 result = TradeResult("error", "Failed to execute trade from Telegram button.")
 
-            await arbitrage_app.notifier.send_trade_result(chat_id, result)
+#             await arbitrage_app.notifier.send_trade_result(chat_id, result)
 
-    return jsonify(ok=True)
+#     return jsonify(ok=True)
 
 
 # --- Main Entry Point ---

@@ -99,6 +99,7 @@ class Engine:
                         'options': {'defaultType': 'spot'},
                         'enableRateLimit': True,
                         'sandbox': True,  # Set to True for testing
+                        'password': config.get('api_passphrase', ('Tunddy20' if not ccxt_name=='okx' else "Tunddy@20")),  # For exchanges like Coinbase Pro
                     })
                     
                     # Test connection with timeout

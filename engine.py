@@ -160,9 +160,11 @@ class Engine:
             if side == 'BUY':
                 remaining_quote = qty
 
-                for price, amount in levels:
-                    price_d = Decimal(str(price))
-                    amount_d = Decimal(str(amount))
+                for level in levels:
+                    if len(level) < 2:
+                        continue
+                    price_d = Decimal(str(level[0]))
+                    amount_d = Decimal(str(level[1]))
                     level_quote = price_d * amount_d
 
                     if remaining_quote <= level_quote:

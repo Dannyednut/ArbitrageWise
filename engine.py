@@ -195,9 +195,9 @@ class Engine:
             elif side == 'SELL':
                 remaining_base = qty
 
-                for price, amount in levels:
-                    price_d = Decimal(str(price))
-                    amount_d = Decimal(str(amount))
+                for level in levels:
+                    price_d = Decimal(str(level[0]))
+                    amount_d = Decimal(str(level[1]))
                     take_base = min(amount_d, remaining_base)
 
                     filled_base += take_base

@@ -292,14 +292,11 @@ class Triangular:
         amount1 = float(req.get('amount', op['initial_amount']))
 
         if not exchange:
-            return TradeResult("error",
-                               f"Exchange '{exchange_name}' not initialized.")
+            return TradeResult("error", f"Exchange '{exchange_name}' not initialized.")
 
         # 1. Pre-Trade Checks
-        if self.engine.account_balances.get(exchange_name,
-                                            {}).get(asset1, 0) < amount1:
-            return TradeResult("error",
-                               f"Insufficient {asset1} on {exchange_name}")
+        if self.engine.account_balances.get(exchange_name,{}).get(asset1, 0) < amount1:
+            return TradeResult("error", f"Insufficient {asset1} on {exchange_name}")
 
         # 2. Execute Sequential Orders
         try:
@@ -356,19 +353,22 @@ class Triangular:
         side = "BUY" if asset == pair_quote else "SELL"
         asset2 = pair_base if side == "BUY" else pair_quote
 
-        slip = await self.engine.calc_slippage(exchange, pair, side,
-                                               Decimal(amount))
+        slip = await self.engine.calc_slippage(exchange, pair, side, Decimal(amount))
         if not self.engine._slippage_ok(slip):
             return TradeResult("error",
                                f"High slippage on {pair} buy: {slip:.2f}%")
         try:
             if side == "BUY":
-                order = await exchange.create_market_buy_order_with_cost(
-                    pair, amount)
+                order = await exchange.create_market_buy_order_with_cost(pair, amount)
             else:
                 order = await exchange.create_market_sell_order(pair, amount)
 
-            return self.net_amount_received(order, asset2)
+            if not order.get('id', None):
+                return TradeResult("error", f"No order response from {pair} {side}")
+            
+            order_info = await exchange.fetch_order(order['id'], pair)
+            return self.net_amount_received(order_info, asset2)
+        
         except Exception as e:
             logger.error(f"[TRADE LEG] Failed: {pair}, {side}, {amount}: {e}")
             return TradeResult("error", f"Trade leg failed: {e}")
@@ -378,6 +378,9 @@ class Triangular:
         Calculate net amount received of the target asset after deducting fees,
         only if the fee is in that asset.
         """
+        if not order:
+            return 0
+        
         fee = order.get("fee", {})
         fee_cost = fee.get("cost", 0) or 0
         fee_currency = fee.get("currency")

@@ -2543,3 +2543,41 @@ client_session: <aiohttp.client.ClientSession object at 0x000002984BC68910>
 2025-09-17 09:12:58,015 - ERROR - Failed to fetch exchange configurations from base44: Cannot connect to host app.base44.com:443 ssl:default [DNS server returned general failure]
 2025-09-17 09:12:58,056 - ERROR - Failed to fetch exchange configurations from base44: Cannot connect to host app.base44.com:443 ssl:default [DNS server returned general failure]
 2025-09-17 09:12:58,407 - ERROR - Failed to fetch exchange configurations from base44: Cannot connect to host app.base44.com:443 ssl:default [DNS server returned general failure]
+2025-09-17 09:14:18,398 - INFO - Initializing exchanges...
+2025-09-17 09:14:18,460 - INFO - Running on http://0.0.0.0:5001 (CTRL + C to quit)
+2025-09-17 09:14:24,475 - INFO - Successfully initialized bybit
+2025-09-17 09:14:30,680 - INFO - Successfully initialized binance
+2025-09-17 09:14:34,259 - INFO - Successfully initialized okx
+2025-09-17 09:14:38,292 - INFO - Successfully initialized bitget
+2025-09-17 09:14:38,292 - INFO - Starting all arbitrage scanners...
+2025-09-17 09:14:38,293 - INFO - Initializing Cross-Exchange Arbitrage Engine...
+2025-09-17 09:14:38,294 - INFO - Starting cross-exchange price streams...
+2025-09-17 09:14:38,294 - INFO - Starting Triangular Arbitrage Engine...
+2025-09-17 09:14:38,295 - INFO - Initialized 4 exchanges: ['bybit', 'binance', 'okx', 'bitget']
+2025-09-17 09:14:38,295 - INFO - Starting triangular opportunity scanning...
+2025-09-17 09:14:38,297 - INFO - Start polling
+2025-09-17 09:14:38,298 - INFO - [bybit] Initializing triangular scanner...
+2025-09-17 09:14:38,301 - INFO - [bybit] Found 364 active spot markets.
+2025-09-17 09:14:38,428 - INFO - [bybit] Generated 863 total triangular paths.
+2025-09-17 09:14:38,445 - INFO - [bybit] Filtered to 860 priority paths.
+2025-09-17 09:14:38,449 - INFO - [bybit] Generated 860 paths across 203 symbols.
+2025-09-17 09:14:38,452 - INFO - [binance] Initializing triangular scanner...
+2025-09-17 09:14:38,464 - INFO - [binance] Found 1512 active spot markets.
+2025-09-17 09:14:39,254 - INFO - [binance] Generated 7554 total triangular paths.
+2025-09-17 09:14:39,392 - INFO - [binance] Filtered to 6615 priority paths.
+2025-09-17 09:14:39,431 - INFO - [binance] Generated 6615 paths across 1466 symbols.
+2025-09-17 09:14:39,433 - INFO - [okx] Initializing triangular scanner...
+2025-09-17 09:14:39,436 - INFO - [okx] Found 462 active spot markets.
+2025-09-17 09:14:39,606 - INFO - [okx] Generated 866 total triangular paths.
+2025-09-17 09:14:39,619 - INFO - [okx] Filtered to 863 priority paths.
+2025-09-17 09:14:39,626 - INFO - [okx] Generated 863 paths across 286 symbols.
+2025-09-17 09:14:39,628 - INFO - [bitget] Initializing triangular scanner...
+2025-09-17 09:14:39,629 - INFO - [bitget] Found 12 active spot markets.
+2025-09-17 09:14:39,630 - INFO - [bitget] Generated 6 total triangular paths.
+2025-09-17 09:14:39,631 - INFO - [bitget] Filtered to 6 priority paths.
+2025-09-17 09:14:39,637 - INFO - [bitget] Generated 6 paths across 5 symbols.
+2025-09-17 09:14:42,090 - INFO - Run polling for bot @crest_price_bot id=7688967629 - 'Coin Price Updates'
+2025-09-17 09:15:38,311 - INFO - Updating account balances...
+2025-09-17 09:15:38,431 - ERROR - Could not fetch balance for bybit: bybit requires "apiKey" credential
+2025-09-17 09:15:38,941 - ERROR - Could not fetch balance for binance: binance requires "apiKey" credential
+2025-09-17 09:15:41,470 - INFO - Account balances updated successfully.

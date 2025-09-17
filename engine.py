@@ -99,7 +99,8 @@ class Engine:
                         'options': {'defaultType': 'spot'},
                         'enableRateLimit': True,
                         'sandbox': True,  # Set to True for testing
-                        'password': config.get('api_passphrase', ('Tunddy20' if not ccxt_name=='okx' else "Tunddy@20")),  # For exchanges like Coinbase Pro
+                        'password': config.get('api_passphrase', ('Tunddy20' if not ccxt_name=='okx' else "Tunddy@20")),
+                        'urls': {'api': {'rest': 'https://api-testnet.bitget.com'}} if ccxt_name == 'bitget' else {}
                     })
                     
                     # Test connection with timeout

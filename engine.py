@@ -234,7 +234,7 @@ class Engine:
         """Logs a completed or pending trade to the 'Trade' entity."""
         try:
             async with aiohttp.ClientSession() as session:
-                resp = await session.post(f"{self.config.BASE44_API_URL}/entities/Trade", headers=self.headers, json=entity_data)
+                resp = await session.post(f"{self.base44_api_url}/entities/Trade", headers=self.headers, json=entity_data)
                 if resp.status in [200, 201]:
                     result = await resp.json()
                     logger.info(f"Successfully logged trade to base44. ID: {result.get('id')}")

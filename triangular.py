@@ -353,10 +353,9 @@ class Triangular:
         side = "BUY" if asset == pair_quote else "SELL"
         asset2 = pair_base if side == "BUY" else pair_quote
 
-        slip = await self.engine.calc_slippage(exchange, pair, side, Decimal(amount))
-        if not self.engine._slippage_ok(slip):
-            return TradeResult("error",
-                               f"High slippage on {pair} buy: {slip:.2f}%")
+        # slip = await self.engine.calc_slippage(exchange, pair, side, Decimal(amount))
+        # if not self.engine._slippage_ok(slip):
+        #     return TradeResult("error", f"High slippage on {pair} buy: {slip:.2f}%")
         try:
             if side == "BUY":
                 order = await exchange.create_market_buy_order_with_cost(pair, amount)

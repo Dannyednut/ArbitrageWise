@@ -251,7 +251,7 @@ class Engine:
         try:
             # --- Build unique opportunity signature ---
             if entity_name == 'ArbitrageOpportunity':
-                signature = f"{op.trading_pair}-{op.buy_exchange}-{op.sell_exchange}-{round(op.profit_percentage, 0)}"
+                signature = f"{op.trading_pair}-{op.buy_exchange}-{op.sell_exchange}-{round(op.profit_percentage, 1)}"
             elif entity_name == 'TriangularOpportunity':
                 signature = f"{op.exchange}-{'->'.join(op.trading_path)}-{round(op.profit_percentage, 1)}"
             else:
